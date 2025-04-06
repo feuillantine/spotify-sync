@@ -1,0 +1,28 @@
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# TypeScript
+dist/
+*.tsbuildinfo
+
+# テストカバレッジ
+coverage/
+
+# 環境変数
+.env
+.env.*
+!.env.example
+
+# ログ
+logs/
+*.log
+
+# macOS
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
