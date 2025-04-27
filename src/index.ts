@@ -38,14 +38,24 @@ async function main() {
     console.log('新規追加曲を確認中...');
     const newTracks = savedTracks.filter((track) => !playlistTracks.some((pt) => pt.id === track.id));
     console.log(`${newTracks.length}件の新規追加曲を検出`);
-
     if (newTracks.length > 0) {
       console.log('プレイリストに新規追加曲を追加中...');
       await playlist.addTracks(config.targetPlaylistId, newTracks);
-      console.log('曲の同期が完了');
     } else {
       console.log('新規追加曲なし');
     }
+
+    console.log('削除曲を確認中...');
+    const deletedTracks = playlistTracks.filter((track) => !savedTracks.some((st) => st.id === track.id));
+    console.log(`${deletedTracks.length}件の削除曲を検出`);
+    if (deletedTracks.length > 0) {
+      console.log('プレイリストから削除曲を削除中...');
+      await playlist.removeTracks(config.targetPlaylistId, deletedTracks);
+    } else {
+      console.log('削除曲なし');
+    }
+
+    console.log('プレイリストの同期が完了');
 
     // フォロー中アーティストの同期
     console.log('フォロー中アーティストを同期中...');

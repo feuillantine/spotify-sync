@@ -105,6 +105,7 @@ describe('SpotifyPlaylist', () => {
         body: { id: 'playlist-id' },
       }),
       addTracksToPlaylist: jest.fn().mockResolvedValue({}),
+      removeTracksFromPlaylist: jest.fn().mockResolvedValue({}),
       getPlaylistTracks: jest.fn().mockResolvedValue({
         body: {
           items: [mockPlaylistTrack],
@@ -292,6 +293,113 @@ describe('SpotifyPlaylist', () => {
       mockSpotifyApi.addTracksToPlaylist.mockRejectedValue(error);
 
       await expect(playlistService.addTracks('playlist-id', [trackToAdd])).rejects.toThrow(PlaylistError);
+    });
+  });
+
+  describe('removeTracks', () => {
+    const trackToRemove: Track = {
+      id: mockSpotifyTrack.id,
+      name: mockSpotifyTrack.name,
+      artists: mockSpotifyTrack.artists.map((a) => ({
+        id: a.id,
+        name: a.name,
+        uri: a.uri,
+      })),
+      uri: mockSpotifyTrack.uri,
+      added_at: mockPlaylistTrack.added_at,
+      album: {
+        id: mockSpotifyTrack.album.id,
+        name: mockSpotifyTrack.album.name,
+        release_date: mockSpotifyTrack.album.release_date,
+        images: mockSpotifyTrack.album.images,
+      },
+      popularity: mockSpotifyTrack.popularity,
+    };
+
+    test('トラックが正常に削除できること', async () => {
+      await playlistService.removeTracks('playlist-id', [trackToRemove]);
+      expect(mockSpotifyApi.removeTracksFromPlaylist).toHaveBeenCalledWith('playlist-id', [{ uri: trackToRemove.uri }]);
+    });
+
+    test('トラックが空の場合は何もしないこと', async () => {
+      await playlistService.removeTracks('playlist-id', []);
+      expect(mockSpotifyApi.removeTracksFromPlaylist).not.toHaveBeenCalled();
+    });
+
+    test('100曲以上のトラックを分割して削除できること', async () => {
+      const tracks = Array(150).fill(trackToRemove);
+      await playlistService.removeTracks('playlist-id', tracks);
+      expect(mockSpotifyApi.removeTracksFromPlaylist).toHaveBeenCalledTimes(2);
+    });
+
+    test('エラー時に適切に例外がスローされること', async () => {
+      const error = new Error('API error');
+      (error as any).statusCode = 401;
+      mockSpotifyApi.removeTracksFromPlaylist.mockRejectedValueOnce(error);
+
+      await expect(playlistService.removeTracks('playlist-id', [trackToRemove])).rejects.toThrow(
+        'Failed to remove tracks from playlist',
+      );
+    });
+
+    test('100曲の制限値でトラックを削除できること', async () => {
+      const tracks = Array(100).fill(trackToRemove);
+      await playlistService.removeTracks('playlist-id', tracks);
+      expect(mockSpotifyApi.removeTracksFromPlaylist).toHaveBeenCalledTimes(1);
+      expect(mockSpotifyApi.removeTracksFromPlaylist).toHaveBeenCalledWith(
+        'playlist-id',
+        tracks.map((t) => ({ uri: t.uri })),
+      );
+    });
+
+    test('101曲のトラックを2回に分けて削除できること', async () => {
+      const tracks = Array(101).fill(trackToRemove);
+      await playlistService.removeTracks('playlist-id', tracks);
+      expect(mockSpotifyApi.removeTracksFromPlaylist).toHaveBeenCalledTimes(2);
+      expect(mockSpotifyApi.removeTracksFromPlaylist).toHaveBeenNthCalledWith(
+        1,
+        'playlist-id',
+        tracks.slice(0, 100).map((t) => ({ uri: t.uri })),
+      );
+      expect(mockSpotifyApi.removeTracksFromPlaylist).toHaveBeenNthCalledWith(
+        2,
+        'playlist-id',
+        tracks.slice(100).map((t) => ({ uri: t.uri })),
+      );
+    });
+
+    test('一部のチャンクでエラーが発生した場合、処理を中断すること', async () => {
+      const tracks = Array(150).fill(trackToRemove);
+      const error = new Error('API error');
+      (error as any).statusCode = 401;
+      mockSpotifyApi.removeTracksFromPlaylist
+        .mockResolvedValueOnce({
+          body: { snapshot_id: 'snapshot1' },
+          headers: {},
+          statusCode: 201,
+        })
+        .mockRejectedValueOnce(error);
+
+      await expect(playlistService.removeTracks('playlist-id', tracks)).rejects.toThrow(
+        'Failed to remove tracks from playlist',
+      );
+      expect(mockSpotifyApi.removeTracksFromPlaylist).toHaveBeenCalledTimes(2);
+    });
+
+    it('トラック削除時にstatusCodeを持つエラーの場合、PlaylistErrorをスロー', async () => {
+      mockSpotifyApi.removeTracksFromPlaylist.mockRejectedValueOnce({
+        statusCode: 403,
+        message: 'Forbidden',
+      });
+
+      await expect(playlistService.removeTracks('playlist-id', [trackToRemove])).rejects.toThrow(PlaylistError);
+    });
+
+    it('トラック削除時にSpotifyApiErrorの場合、PlaylistErrorをスロー', async () => {
+      const error = new SpotifyApiError('API Error', 403);
+      mockSpotifyApi.removeTracksFromPlaylist.mockRejectedValue(error);
+
+      await expect(playlistService.removeTracks('playlist-id', [trackToRemove])).rejects.toThrow(PlaylistError);
     });
   });
 

@@ -2,17 +2,8 @@ import SpotifyWebApi from 'spotify-web-api-node';
 import { SpotifyApiError, withRetry } from '../../utils/error';
 import type { SpotifyAuthServiceInterface } from './types';
 
-// 必要なスコープを定義
-export const REQUIRED_SCOPES = [
-  'user-library-read',
-  'playlist-modify-public',
-  'playlist-modify-private',
-  'user-follow-read',
-  'user-follow-modify',
-];
-
 export class SpotifyAuth implements SpotifyAuthServiceInterface {
-  constructor(private client: SpotifyWebApi) {}
+  constructor(private client: SpotifyWebApi) { }
 
   async refreshToken(): Promise<void> {
     try {
@@ -44,16 +35,5 @@ export class SpotifyAuth implements SpotifyAuthServiceInterface {
       clientSecret,
       refreshToken,
     });
-  }
-
-  /**
-   * 認証用URLを生成
-   */
-  static createAuthUrl(clientId: string, redirectUri: string): string {
-    const spotifyApi = new SpotifyWebApi({
-      clientId,
-      redirectUri,
-    });
-    return spotifyApi.createAuthorizeURL(REQUIRED_SCOPES, '');
   }
 }

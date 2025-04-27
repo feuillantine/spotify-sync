@@ -64,25 +64,4 @@ describe('SpotifyAuth', () => {
       });
     });
   });
-
-  describe('createAuthUrl', () => {
-    test('認証URLを正しく生成する', () => {
-      const clientId = 'test-client-id';
-      const redirectUri = 'http://localhost:3000/callback';
-      const mockCreateAuthorizeURL = jest.fn().mockReturnValue('http://example.com/auth');
-
-      (SpotifyWebApi as jest.Mock).mockImplementation(() => ({
-        createAuthorizeURL: mockCreateAuthorizeURL,
-      }));
-
-      const url = SpotifyAuth.createAuthUrl(clientId, redirectUri);
-
-      expect(SpotifyWebApi).toHaveBeenCalledWith({
-        clientId,
-        redirectUri,
-      });
-      expect(mockCreateAuthorizeURL).toHaveBeenCalled();
-      expect(url).toBe('http://example.com/auth');
-    });
-  });
 });

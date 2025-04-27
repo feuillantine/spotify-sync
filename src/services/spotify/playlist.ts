@@ -48,6 +48,36 @@ export class SpotifyPlaylist implements SpotifyPlaylistServiceInterface {
     console.log(`Added ${tracks.length} tracks to playlist`);
   }
 
+  async removeTracks(playlistId: string, tracks: Track[]): Promise<void> {
+    if (tracks.length === 0) {
+      console.log('No tracks to remove');
+      return;
+    }
+    await this.auth.refreshToken();
+    const uris = tracks.map(t => t.uri);
+    for (let i = 0; i < uris.length; i += 100) {
+      const chunk = uris.slice(i, i + 100);
+      try {
+        await withRetry(async () => {
+          await this.client.removeTracksFromPlaylist(playlistId, chunk.map(uri => ({ uri })));
+        });
+      } catch (error) {
+        if (error instanceof SpotifyApiError) {
+          throw new PlaylistError('Failed to remove tracks from playlist', undefined, error);
+        }
+        if (error instanceof Error && 'statusCode' in error) {
+          throw new PlaylistError('Failed to remove tracks from playlist', undefined, error);
+        }
+        throw new PlaylistError(
+          'Failed to remove tracks from playlist',
+          { error: error instanceof Error ? error.message : String(error) },
+          error instanceof Error ? error : undefined,
+        );
+      }
+    }
+    console.log(`Removed ${tracks.length} tracks from playlist`);
+  }
+
   async createPlaylist(name: string, description?: string): Promise<string> {
     await this.auth.refreshToken();
 
@@ -113,15 +143,15 @@ export class SpotifyPlaylist implements SpotifyPlaylistServiceInterface {
               added_at: item.added_at,
               album: track.album
                 ? {
-                    id: track.album.id,
-                    name: track.album.name,
-                    release_date: track.album.release_date,
-                    images: track.album.images?.map((image) => ({
-                      url: image.url,
-                      height: image.height || undefined,
-                      width: image.width || undefined,
-                    })),
-                  }
+                  id: track.album.id,
+                  name: track.album.name,
+                  release_date: track.album.release_date,
+                  images: track.album.images?.map((image) => ({
+                    url: image.url,
+                    height: image.height || undefined,
+                    width: image.width || undefined,
+                  })),
+                }
                 : undefined,
               popularity: track.popularity,
             };

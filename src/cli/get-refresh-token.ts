@@ -3,7 +3,6 @@ import { Command } from 'commander';
 import dotenv from 'dotenv';
 import express from 'express';
 import SpotifyWebApi from 'spotify-web-api-node';
-import { REQUIRED_SCOPES } from '../services/spotify/auth';
 
 // 型定義
 type AccountType = 'source' | 'target';
@@ -13,6 +12,15 @@ interface SpotifyConfig {
   clientSecret: string;
   redirectUri: string;
 }
+
+//　必要スコープ
+const requiredScopes = [
+  'user-library-read',
+  'playlist-modify-public',
+  'playlist-modify-private',
+  'user-follow-read',
+  'user-follow-modify',
+];
 
 // 設定管理
 function getEnvVars(accountType: AccountType): SpotifyConfig {
@@ -66,7 +74,7 @@ class AuthServer {
 
   private setupRoutes(spotifyApi: SpotifyWebApi, accountType: AccountType): void {
     this.app.get('/login', (req, res) => {
-      const authorizeURL = spotifyApi.createAuthorizeURL(REQUIRED_SCOPES, 'state');
+      const authorizeURL = spotifyApi.createAuthorizeURL(requiredScopes, 'state');
       console.log(
         `\nSpotify認証ページへリダイレクトします (${accountType === 'source' ? 'ソース' : 'ターゲット'}アカウント)...`,
       );
@@ -91,11 +99,7 @@ class AuthServer {
         console.log('アクセストークン:', access_token);
         console.log('リフレッシュトークン:', refresh_token);
         console.log('-----------------');
-        console.log(
-          `\n上記のリフレッシュトークンを.envファイルの${
-            accountType === 'source' ? 'SOURCE_REFRESH_TOKEN' : 'TARGET_REFRESH_TOKEN'
-          }にコピーしてください`,
-        );
+        console.log(`\n上記のリフレッシュトークンを.envファイルの${accountType === 'source' ? 'SOURCE_REFRESH_TOKEN' : 'TARGET_REFRESH_TOKEN'}にコピーしてください`);
 
         res.send(
           `${accountType === 'source' ? 'ソース' : 'ターゲット'}アカウントの認証が完了しました。このウィンドウを閉じてください。`,
