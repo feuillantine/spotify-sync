@@ -2,9 +2,9 @@ name: Spotify Playlist Sync
 
 on:
   # 毎日深夜に実行
-  schedule:
+  # schedule:
     # JST 03:00 = UTC 18:00
-    - cron: "0 18 * * *"
+    # - cron: "0 18 * * *"
   # 手動で実行可能
   workflow_dispatch:
 
