@@ -58,19 +58,19 @@ async function main() {
     console.log('プレイリストの同期が完了');
 
     // フォロー中アーティストの同期
-    console.log('フォロー中アーティストを同期中...');
-    const sourceFollowedArtists = await sourceFollowing.getFollowedArtists();
-    const targetFollowedArtists = await targetFollowing.getFollowedArtists();
+    // console.log('フォロー中アーティストを同期中...');
+    // const sourceFollowedArtists = await sourceFollowing.getFollowedArtists();
+    // const targetFollowedArtists = await targetFollowing.getFollowedArtists();
 
-    const newFollowedArtists = sourceFollowedArtists.filter((id) => !targetFollowedArtists.includes(id));
-    if (newFollowedArtists.length > 0) {
-      console.log(`${newFollowedArtists.length}件の新規アーティストをフォロー中...`);
-      await targetFollowing.followArtists(newFollowedArtists);
-    } else {
-      console.log('新規フォローアーティストなし');
-    }
+    // const newFollowedArtists = sourceFollowedArtists.filter((id) => !targetFollowedArtists.includes(id));
+    // if (newFollowedArtists.length > 0) {
+    //   console.log(`${newFollowedArtists.length}件の新規アーティストをフォロー中...`);
+    //   await targetFollowing.followArtists(newFollowedArtists);
+    // } else {
+    //   console.log('新規フォローアーティストなし');
+    // }
 
-    console.log('アーティストの同期が完了');
+    // console.log('アーティストの同期が完了');
   } catch (error) {
     handleError(error as Error);
   }
