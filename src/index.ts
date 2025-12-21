@@ -1,6 +1,5 @@
+import { createSpotifyUtility } from 'spotify-utility';
 import getConfig from './config/env';
-import { SpotifyAuth, SpotifyFollowing, SpotifyPlaylist, SpotifyTracks } from './services/spotify';
-import { handleError } from './utils/error';
 
 async function main() {
   try {
@@ -8,71 +7,58 @@ async function main() {
     const config = getConfig();
 
     // クライアントの初期化
-    const sourceClient = SpotifyAuth.createClient(
-      config.sourceClientId,
-      config.sourceClientSecret,
-      config.sourceRefreshToken,
-    );
+    const sourceClient = await createSpotifyUtility({
+      clientId: config.sourceClientId,
+      clientSecret: config.sourceClientSecret,
+      refreshToken: config.sourceRefreshToken,
+    });
 
-    const targetClient = SpotifyAuth.createClient(
-      config.targetClientId,
-      config.targetClientSecret,
-      config.targetRefreshToken,
-    );
-
-    // サービスの初期化
-    const tracks = new SpotifyTracks(sourceClient);
-    const playlist = new SpotifyPlaylist(targetClient);
-    const sourceFollowing = new SpotifyFollowing(sourceClient);
-    const targetFollowing = new SpotifyFollowing(targetClient);
+    const targetClient = await createSpotifyUtility({
+      clientId: config.targetClientId,
+      clientSecret: config.targetClientSecret,
+      refreshToken: config.targetRefreshToken,
+    });
 
     // お気に入り曲の同期
     console.log('お気に入り曲を取得中...');
-    const savedTracks = await tracks.getSavedTracks();
-    console.log(`${savedTracks.length}件のお気に入り曲を取得`);
+    const savedTrackUris = await sourceClient.tracks.listMyFavoriteUris();
+    console.log(`${savedTrackUris.size}件のお気に入り曲を取得`);
 
     console.log('プレイリストの曲を取得中...');
-    const playlistTracks = await playlist.getPlaylistTracks(config.targetPlaylistId);
-    console.log(`${playlistTracks.length}件のプレイリスト曲を取得`);
+    const playlistTrackUris = await targetClient.playlists.listTrackUris(config.targetPlaylistId);
+    console.log(`${playlistTrackUris.size}件のプレイリスト曲を取得`);
 
-    console.log('新規追加曲を確認中...');
-    const newTracks = savedTracks.filter((track) => !playlistTracks.some((pt) => pt.id === track.id));
-    console.log(`${newTracks.length}件の新規追加曲を検出`);
-    if (newTracks.length > 0) {
+    console.log('差分を確認中...');
+
+    // 新規追加
+    const newTrackUris = new Set(
+      [...savedTrackUris].filter((uri) => !playlistTrackUris.has(uri))
+    );
+    console.log(`${newTrackUris.size}件の新規追加曲を検出`);
+    if (newTrackUris.size > 0) {
       console.log('プレイリストに新規追加曲を追加中...');
-      await playlist.addTracks(config.targetPlaylistId, newTracks);
+      await targetClient.playlists.addTracks(config.targetPlaylistId, newTrackUris);
     } else {
       console.log('新規追加曲なし');
     }
 
-    console.log('削除曲を確認中...');
-    const deletedTracks = playlistTracks.filter((track) => !savedTracks.some((st) => st.id === track.id));
-    console.log(`${deletedTracks.length}件の削除曲を検出`);
-    if (deletedTracks.length > 0) {
+    // 削除
+    const deletedTrackUris = new Set(
+      [...playlistTrackUris].filter((uri) => !savedTrackUris.has(uri))
+    );
+    console.log(`${deletedTrackUris.size}件の削除曲を検出`);
+
+    if (deletedTrackUris.size > 0) {
       console.log('プレイリストから削除曲を削除中...');
-      await playlist.removeTracks(config.targetPlaylistId, deletedTracks);
+      await targetClient.playlists.removeTracks(config.targetPlaylistId, deletedTrackUris);
     } else {
       console.log('削除曲なし');
     }
 
     console.log('プレイリストの同期が完了');
-
-    // フォロー中アーティストの同期
-    // console.log('フォロー中アーティストを同期中...');
-    // const sourceFollowedArtists = await sourceFollowing.getFollowedArtists();
-    // const targetFollowedArtists = await targetFollowing.getFollowedArtists();
-
-    // const newFollowedArtists = sourceFollowedArtists.filter((id) => !targetFollowedArtists.includes(id));
-    // if (newFollowedArtists.length > 0) {
-    //   console.log(`${newFollowedArtists.length}件の新規アーティストをフォロー中...`);
-    //   await targetFollowing.followArtists(newFollowedArtists);
-    // } else {
-    //   console.log('新規フォローアーティストなし');
-    // }
-
-    // console.log('アーティストの同期が完了');
   } catch (error) {
-    handleError(error as Error);
+    console.error('Unexpected error:', error);
+    process.exit(1);
   }
 }
 

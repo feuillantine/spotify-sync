@@ -1,11 +1,9 @@
 name: Spotify Playlist Sync
 
 on:
-  # 毎日深夜に実行
   schedule:
     # JST 03:00 = UTC 18:00
     - cron: "0 18 * * *"
-  # 手動で実行可能
   workflow_dispatch:
 
 jobs:
@@ -14,22 +12,28 @@ jobs:
     steps:
       # リポジトリをチェックアウト
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+
+      # pnpmをセットアップ
+      - name: Setup pnpm
+        uses: pnpm/action-setup@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v4.2.0
+        with:
+          version: 8
 
       # Node.jsをセットアップ
       - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6.1.0
         with:
-          node-version: "18"
-          cache: "npm"
+          node-version: "22"
+          cache: "pnpm"
 
       # 依存パッケージをインストール
       - name: Install dependencies
-        run: npm ci
+        run: pnpm install --frozen-lockfile
 
       # 同期スクリプトを実行
       - name: Run sync
-        run: npm run start
+        run: pnpm start
         env:
           SOURCE_CLIENT_ID: ${{ secrets.SOURCE_CLIENT_ID }}
           SOURCE_CLIENT_SECRET: ${{ secrets.SOURCE_CLIENT_SECRET }}

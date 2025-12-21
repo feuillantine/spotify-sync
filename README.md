@@ -33,7 +33,7 @@
 1. このリポジトリをクローン
 2. 依存パッケージをインストール：
    ```
-   npm install
+   pnpm i --frozen-lockfile
    ```
 3. `.env.example`を`.env`にコピーして、必要な情報を入力（`SOURCE_REFRESH_TOKEN`、`TARGET_REFRESH_TOKEN`以外）
    ```
@@ -47,13 +47,13 @@
 **ソースアカウントの場合:**
 
 ```bash
-npm run get-refresh-token -- --account source
+pnpm get-refresh-token --account source
 ```
 
 **ターゲットアカウントの場合:**
 
 ```bash
-npm run get-refresh-token -- --account target
+pnpm get-refresh-token --account target
 ```
 
 コマンドを実行すると、認証用のURLが表示されます。ブラウザでそのURLを開き、Spotifyアカウントでログインして認証を許可してください。
@@ -77,7 +77,7 @@ npm run get-refresh-token -- --account target
 ローカルで手動実行する場合は以下のコマンドを使用します：
 
 ```
-npm run start
+pnpm start
 ```
 
 ## 仕組み

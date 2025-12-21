@@ -10,13 +10,3 @@ export interface Config {
   readonly targetRefreshToken: string;
   readonly targetPlaylistId: string;
 }
-
-/**
- * 設定バリデーションエラー
- */
-export class ConfigValidationError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = 'ConfigValidationError';
-  }
-}

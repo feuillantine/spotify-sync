@@ -5,7 +5,7 @@
   "main": "dist/index.js",
   "scripts": {
     "build": "tsc",
-    "start": "npm run build && node dist/index.js",
+    "start": "tsc && node dist/index.js",
     "lint": "biome lint .",
     "lint:fix": "biome lint . --write",
     "format": "biome format .",
@@ -16,13 +16,18 @@
     "exec": "ts-node src/index.ts",
     "get-refresh-token": "ts-node src/cli/get-refresh-token.ts"
   },
-  "keywords": ["spotify", "playlist", "sync", "github-actions"],
+  "keywords": [
+    "spotify",
+    "playlist",
+    "sync",
+    "github-actions"
+  ],
   "author": "",
   "license": "MIT",
   "dependencies": {
     "date-fns": "^2.30.0",
     "fs-extra": "^11.1.1",
-    "spotify-web-api-node": "^5.0.2"
+    "spotify-utility": "github:feuillantine/spotify-utility"
   },
   "devDependencies": {
     "@biomejs/biome": "^1.9.4",
@@ -30,7 +35,6 @@
     "@types/fs-extra": "^11.0.1",
     "@types/jest": "^29.5.3",
     "@types/node": "^20.17.28",
-    "@types/spotify-web-api-node": "^5.0.11",
     "commander": "^13.1.0",
     "dotenv": "^16.4.7",
     "express": "^5.1.0",

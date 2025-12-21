@@ -2,7 +2,7 @@ import path from 'node:path';
 import { Command } from 'commander';
 import dotenv from 'dotenv';
 import express from 'express';
-import SpotifyWebApi from 'spotify-web-api-node';
+import { buildAuthorizeUrl, fetchAccessToken } from 'spotify-utility';
 
 // 型定義
 type AccountType = 'source' | 'target';
@@ -13,7 +13,7 @@ interface SpotifyConfig {
   redirectUri: string;
 }
 
-//　必要スコープ
+// 必要スコープ
 const requiredScopes = [
   'user-library-read',
   'playlist-modify-public',
@@ -23,7 +23,7 @@ const requiredScopes = [
 ];
 
 // 設定管理
-function getEnvVars(accountType: AccountType): SpotifyConfig {
+function getConfig(accountType: AccountType): SpotifyConfig {
   const clientId = accountType === 'source' ? process.env.SOURCE_CLIENT_ID : process.env.TARGET_CLIENT_ID;
   const clientSecret = accountType === 'source' ? process.env.SOURCE_CLIENT_SECRET : process.env.TARGET_CLIENT_SECRET;
 
@@ -41,14 +41,8 @@ function getEnvVars(accountType: AccountType): SpotifyConfig {
   return {
     clientId,
     clientSecret,
-    redirectUri: 'http://localhost:8888/callback',
+    redirectUri: 'http://127.0.0.1:8888/callback',
   };
-}
-
-function initializeSpotifyApi(accountType: AccountType): SpotifyWebApi {
-  dotenv.config({ path: path.resolve(process.cwd(), '.env') });
-  const config = getEnvVars(accountType);
-  return new SpotifyWebApi(config);
 }
 
 // サーバー管理
@@ -62,48 +56,41 @@ class AuthServer {
     this.setupSignalHandlers();
   }
 
-  start(spotifyApi: SpotifyWebApi, accountType: AccountType): void {
-    this.setupRoutes(spotifyApi, accountType);
+  start(config: SpotifyConfig, accountType: AccountType): void {
+    this.setupRoutes(config, accountType);
     this.server = this.app.listen(8888, () => {
       console.log(`\n${accountType === 'source' ? 'ソース' : 'ターゲット'}アカウントの認証サーバーを起動中...`);
-      console.log('http://localhost:8888/login にアクセスしてください');
+      console.log('http://127.0.0.1:8888/login にアクセスしてください');
     });
 
     this.setupTimeout();
   }
 
-  private setupRoutes(spotifyApi: SpotifyWebApi, accountType: AccountType): void {
+  private setupRoutes(config: SpotifyConfig, accountType: AccountType): void {
     this.app.get('/login', (req, res) => {
-      const authorizeURL = spotifyApi.createAuthorizeURL(requiredScopes, 'state');
-      console.log(
-        `\nSpotify認証ページへリダイレクトします (${accountType === 'source' ? 'ソース' : 'ターゲット'}アカウント)...`,
-      );
-      res.redirect(authorizeURL);
+      console.log(`\nSpotify認証ページへリダイレクトします (${accountType === 'source' ? 'ソース' : 'ターゲット'}アカウント)...`);
+      const authorizeUrl = buildAuthorizeUrl(config.clientId, config.redirectUri, requiredScopes);
+      res.redirect(authorizeUrl);
     });
 
     this.app.get('/callback', async (req, res) => {
       const { code } = req.query;
 
-      if (!code) {
+      if (typeof code !== 'string') {
         res.status(400).send('認証コードが見つかりません');
         this.stop();
         return;
       }
 
       try {
-        const data = await spotifyApi.authorizationCodeGrant(code as string);
-        const { access_token, refresh_token } = data.body;
-
+        const accessToken = await fetchAccessToken(config.clientId, config.clientSecret, code, config.redirectUri);
         console.log('\n--- 認証成功 ---');
         console.log(`アカウントタイプ: ${accountType === 'source' ? 'ソース' : 'ターゲット'}`);
-        console.log('アクセストークン:', access_token);
-        console.log('リフレッシュトークン:', refresh_token);
+        console.log('リフレッシュトークン:', accessToken.refresh_token);
         console.log('-----------------');
         console.log(`\n上記のリフレッシュトークンを.envファイルの${accountType === 'source' ? 'SOURCE_REFRESH_TOKEN' : 'TARGET_REFRESH_TOKEN'}にコピーしてください`);
 
-        res.send(
-          `${accountType === 'source' ? 'ソース' : 'ターゲット'}アカウントの認証が完了しました。このウィンドウを閉じてください。`,
-        );
+        res.send(`${accountType === 'source' ? 'ソース' : 'ターゲット'}アカウントの認証が完了しました。このウィンドウを閉じてください。`);
       } catch (error) {
         console.error('\n認証コードの取得中にエラーが発生:', error);
         res.status(500).send('認証中にエラーが発生しました');
@@ -118,6 +105,7 @@ class AuthServer {
       if (this.server?.listening) {
         console.error('\n認証がタイムアウトしました。サーバーを停止します。');
         this.stop();
+        return;
       }
     }, this.TIMEOUT_MS);
   }
@@ -154,9 +142,10 @@ function main() {
     process.exit(1);
   }
 
-  const spotifyApi = initializeSpotifyApi(accountType);
+  dotenv.config({ path: path.resolve(process.cwd(), '.env') });
+  const config = getConfig(accountType);
   const server = new AuthServer();
-  server.start(spotifyApi, accountType);
+  server.start(config, accountType);
 }
 
 main();

@@ -1,5 +1,5 @@
 import dotenv from 'dotenv';
-import { Config, ConfigValidationError } from './types';
+import { Config } from './types';
 
 dotenv.config();
 
@@ -17,7 +17,7 @@ export function loadEnvConfig(): Config {
   const missingEnvVars = requiredEnvVars.filter((varName) => !process.env[varName]);
 
   if (missingEnvVars.length > 0) {
-    throw new ConfigValidationError(`必須の環境変数が設定されていません: ${missingEnvVars.join(', ')}`);
+    throw new Error(`必須の環境変数が設定されていません: ${missingEnvVars.join(', ')}`);
   }
 
   return {
@@ -50,5 +50,5 @@ export function getConfig(): Config {
   return loadEnvConfig();
 }
 
-export { Config, ConfigValidationError };
+export { Config };
 export default getConfig;
