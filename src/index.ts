@@ -19,21 +19,17 @@ async function main() {
       refreshToken: config.targetRefreshToken,
     });
 
-    // お気に入り曲の同期
+    // 情報取得
     console.log('お気に入り曲を取得中...');
     const savedTrackUris = await sourceClient.tracks.listMyFavoriteUris();
     console.log(`${savedTrackUris.size}件のお気に入り曲を取得`);
-
     console.log('プレイリストの曲を取得中...');
     const playlistTrackUris = await targetClient.playlists.listTrackUris(config.targetPlaylistId);
     console.log(`${playlistTrackUris.size}件のプレイリスト曲を取得`);
-
     console.log('差分を確認中...');
 
     // 新規追加
-    const newTrackUris = new Set(
-      [...savedTrackUris].filter((uri) => !playlistTrackUris.has(uri))
-    );
+    const newTrackUris = savedTrackUris.difference(playlistTrackUris);
     console.log(`${newTrackUris.size}件の新規追加曲を検出`);
     if (newTrackUris.size > 0) {
       console.log('プレイリストに新規追加曲を追加中...');
@@ -43,11 +39,8 @@ async function main() {
     }
 
     // 削除
-    const deletedTrackUris = new Set(
-      [...playlistTrackUris].filter((uri) => !savedTrackUris.has(uri))
-    );
+    const deletedTrackUris = playlistTrackUris.difference(savedTrackUris);
     console.log(`${deletedTrackUris.size}件の削除曲を検出`);
-
     if (deletedTrackUris.size > 0) {
       console.log('プレイリストから削除曲を削除中...');
       await targetClient.playlists.removeTracks(config.targetPlaylistId, deletedTrackUris);
