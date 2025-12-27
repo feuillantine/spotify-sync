@@ -1,0 +1,24 @@
+name: TypeScript Lint
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  ts-lint:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      # リポジトリのセットアップ
+      - uses: ./.github/actions/setup
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+
+      # 自動フォーマットを実行（自動修正不可エラーがあっても続行）
+      - name: Run check
+        run: pnpm check
