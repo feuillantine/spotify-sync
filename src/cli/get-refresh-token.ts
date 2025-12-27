@@ -14,11 +14,7 @@ interface SpotifyConfig {
 }
 
 // 必要スコープ
-const requiredScopes = [
-  'user-library-read',
-  'playlist-modify-public',
-  'playlist-modify-private',
-];
+const requiredScopes = ['user-library-read', 'playlist-modify-public', 'playlist-modify-private'];
 
 // 設定管理
 function getConfig(accountType: AccountType): SpotifyConfig {
@@ -66,7 +62,9 @@ class AuthServer {
 
   private setupRoutes(config: SpotifyConfig, accountType: AccountType): void {
     this.app.get('/login', (req, res) => {
-      console.log(`\nSpotify認証ページへリダイレクトします (${accountType === 'source' ? 'ソース' : 'ターゲット'}アカウント)...`);
+      console.log(
+        `\nSpotify認証ページへリダイレクトします (${accountType === 'source' ? 'ソース' : 'ターゲット'}アカウント)...`,
+      );
       const authorizeUrl = buildAuthorizeUrl(config.clientId, config.redirectUri, requiredScopes);
       res.redirect(authorizeUrl);
     });
@@ -86,9 +84,13 @@ class AuthServer {
         console.log(`アカウントタイプ: ${accountType === 'source' ? 'ソース' : 'ターゲット'}`);
         console.log('リフレッシュトークン:', accessToken.refresh_token);
         console.log('-----------------');
-        console.log(`\n上記のリフレッシュトークンを.envファイルの${accountType === 'source' ? 'SOURCE_REFRESH_TOKEN' : 'TARGET_REFRESH_TOKEN'}にコピーしてください`);
+        console.log(
+          `\n上記のリフレッシュトークンを.envファイルの${accountType === 'source' ? 'SOURCE_REFRESH_TOKEN' : 'TARGET_REFRESH_TOKEN'}にコピーしてください`,
+        );
 
-        res.send(`${accountType === 'source' ? 'ソース' : 'ターゲット'}アカウントの認証が完了しました。このウィンドウを閉じてください。`);
+        res.send(
+          `${accountType === 'source' ? 'ソース' : 'ターゲット'}アカウントの認証が完了しました。このウィンドウを閉じてください。`,
+        );
       } catch (error) {
         console.error('\n認証コードの取得中にエラーが発生:', error);
         res.status(500).send('認証中にエラーが発生しました');

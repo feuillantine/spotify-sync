@@ -31,22 +31,8 @@ export function loadEnvConfig(): Config {
   };
 }
 
-// テスト用のモック設定を注入するための関数
-let mockConfig: Config | null = null;
-
-export function setMockConfig(config: Config): void {
-  mockConfig = config;
-}
-
-export function clearMockConfig(): void {
-  mockConfig = null;
-}
-
 // 実際の設定を取得する関数
 export function getConfig(): Config {
-  if (mockConfig) {
-    return mockConfig;
-  }
   return loadEnvConfig();
 }
 
