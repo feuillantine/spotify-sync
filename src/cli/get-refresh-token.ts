@@ -18,8 +18,6 @@ const requiredScopes = [
   'user-library-read',
   'playlist-modify-public',
   'playlist-modify-private',
-  'user-follow-read',
-  'user-follow-modify',
 ];
 
 // 設定管理
