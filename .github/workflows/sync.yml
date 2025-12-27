@@ -14,7 +14,14 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 50
     steps:
-      # リポジトリのセットアップ
+      # リポジトリをチェックアウト
+      - name: Checkout repository
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+
+      # Node.jsと依存関係のセットアップ
       - uses: ./.github/actions/setup
 
       # 同期スクリプトを実行

@@ -14,10 +14,16 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      # リポジトリのセットアップ
-      - uses: ./.github/actions/setup
+      # リポジトリをチェックアウト
+      - name: Checkout repository
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
         with:
           ref: ${{ github.event.pull_request.head.ref }}
+          fetch-depth: 1
+          persist-credentials: false
+
+      # Node.jsと依存関係のセットアップ
+      - uses: ./.github/actions/setup
 
       # 自動フォーマットを実行（自動修正不可エラーがあっても続行）
       - name: Run check
