@@ -3,19 +3,19 @@
   "version": "1.0.0",
   "description": "Sync favorite tracks from one Spotify user to another user's playlist",
   "main": "dist/index.js",
+  "engines": {
+    "node": ">=22.x",
+    "pnpm": ">=10.x"
+  },
   "scripts": {
     "build": "tsc",
     "start": "tsc && node dist/index.js",
     "check": "tsc --noEmit && biome check .",
     "check:fix": "tsc --noEmit && biome check . --write",
-    "get-refresh-token": "ts-node src/cli/get-refresh-token.ts"
+    "get-refresh-token": "ts-node src/cli/get-refresh-token.ts",
+    "preinstall": "npx only-allow pnpm"
   },
-  "keywords": [
-    "spotify",
-    "playlist",
-    "sync",
-    "github-actions"
-  ],
+  "keywords": ["spotify", "playlist", "sync", "github-actions"],
   "author": "",
   "license": "MIT",
   "dependencies": {
@@ -34,8 +34,6 @@
     "typescript": "^5.1.6"
   },
   "pnpm": {
-    "onlyBuiltDependencies": [
-      "spotify-utility"
-    ]
+    "onlyBuiltDependencies": ["spotify-utility"]
   }
 }
