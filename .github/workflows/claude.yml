@@ -50,7 +50,7 @@ jobs:
             {
               "env": {
                 "ANTHROPIC_BASE_URL": "${{ secrets.ANTHROPIC_BASE_URL }}",
-                "ANTHROPIC_AUTH_TOKEN": "${{ secrets.ANTHROPIC_AUTH_TOKEN }}",
+                "ANTHROPIC_AUTH_TOKEN": "${{ secrets.ANTHROPIC_API_KEY }}",
                 "API_TIMEOUT_MS": "3000000",
                 "DISABLE_NON_ESSENTIAL_MODEL_CALLS": "1",
                 "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1"
