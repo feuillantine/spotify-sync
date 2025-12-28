@@ -1,19 +1,18 @@
 # Spotify Playlist Sync
 
-このプロジェクトは、GitHub Actionsを使用して定期的に特定のSpotifyユーザーのお気に入りに追加された曲を、別ユーザーの特定のプレイリストに自動的に追加するツールです。
+このプロジェクトは、GitHub Actionsを使用して定期的にSpotifyユーザーのお気に入りに追加された曲を、特定のプレイリストに自動的に同期するツールです。
 
 ## 機能
 
-- 特定のSpotifyユーザーのお気に入り曲を取得
+- お気に入り曲を取得
 - プレイリストに未追加の曲を特定
-- 別ユーザーの特定プレイリストに新しい曲を追加
+- プレイリストに新しい曲を追加
+- プレイリストから削除された曲を削除
 - GitHub Actionsによる定期的な実行
 
 ## セットアップ方法
 
 ### 1. Spotify開発者アカウントの設定
-
-両方のSpotifyアカウント（ソースとターゲット）に対して以下の手順を実行します：
 
 1. [Spotify Developer Dashboard](https://developer.spotify.com/dashboard/applications)にログイン
 2. 新しいアプリケーションを作成
@@ -32,41 +31,30 @@
    ```
    pnpm i --frozen-lockfile
    ```
-3. `.env.example`を`.env`にコピーして、必要な情報を入力（`SOURCE_REFRESH_TOKEN`、`TARGET_REFRESH_TOKEN`以外）
+3. `.env.example`を`.env`にコピーして、必要な情報を入力（`REFRESH_TOKEN`以外）
    ```
    cp .env.example .env
    ```
 
 ### 3. リフレッシュトークンの取得
 
-以下のコマンドを実行して、各アカウントのリフレッシュトークンを取得します。
-
-**ソースアカウントの場合:**
+以下のコマンドを実行して、リフレッシュトークンを取得します。
 
 ```bash
-pnpm get-refresh-token --account source
-```
-
-**ターゲットアカウントの場合:**
-
-```bash
-pnpm get-refresh-token --account target
+pnpm get-refresh-token
 ```
 
 コマンドを実行すると、認証用のURLが表示されます。ブラウザでそのURLを開き、Spotifyアカウントでログインして認証を許可してください。
-認証が成功すると、コンソールにリフレッシュトークンが表示されます。表示されたトークンをコピーし、`.env` ファイルの `SOURCE_REFRESH_TOKEN` または `TARGET_REFRESH_TOKEN` にそれぞれ設定してください。
+認証が成功すると、コンソールにリフレッシュトークンが表示されます。表示されたトークンをコピーし、`.env` ファイルの `REFRESH_TOKEN` に設定してください。
 
 ### 4. GitHub Actionsの設定
 
 1. GitHub上でリポジトリを作成
 2. 必要な秘密情報（Secrets）をリポジトリの設定に追加：
-   - `SOURCE_CLIENT_ID`
-   - `SOURCE_CLIENT_SECRET`
-   - `SOURCE_REFRESH_TOKEN`
-   - `TARGET_CLIENT_ID`
-   - `TARGET_CLIENT_SECRET`
-   - `TARGET_REFRESH_TOKEN`
-   - `TARGET_PLAYLIST_ID`
+   - `CLIENT_ID`
+   - `CLIENT_SECRET`
+   - `REFRESH_TOKEN`
+   - `PLAYLIST_ID`
 3. リポジトリをプッシュすると、GitHub Actionsが自動的に設定されます
 
 ## 手動実行
@@ -79,7 +67,7 @@ pnpm start
 
 ## 仕組み
 
-1. ソースユーザーのお気に入り曲を取得
-2. ターゲットプレイリストの現在の曲を取得
-3. プレイリストに未追加の曲を特定
-4. ターゲットユーザーの特定プレイリストに新しい曲を追加
+1. お気に入り曲を取得
+2. プレイリストの現在の曲を取得
+3. プレイリストに未追加の曲を特定して追加
+4. お気に入りから削除された曲をプレイリストから削除

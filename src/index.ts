@@ -7,24 +7,18 @@ async function main() {
     const config = getConfig();
 
     // クライアントの初期化
-    const sourceClient = await createSpotifyUtility({
-      clientId: config.sourceClientId,
-      clientSecret: config.sourceClientSecret,
-      refreshToken: config.sourceRefreshToken,
-    });
-
-    const targetClient = await createSpotifyUtility({
-      clientId: config.targetClientId,
-      clientSecret: config.targetClientSecret,
-      refreshToken: config.targetRefreshToken,
+    const client = await createSpotifyUtility({
+      clientId: config.clientId,
+      clientSecret: config.clientSecret,
+      refreshToken: config.refreshToken,
     });
 
     // 情報取得
     console.log('お気に入り曲を取得中...');
-    const savedTrackUris = await sourceClient.tracks.listMyFavoriteUris();
+    const savedTrackUris = await client.tracks.listMyFavoriteUris();
     console.log(`${savedTrackUris.size}件のお気に入り曲を取得`);
     console.log('プレイリストの曲を取得中...');
-    const playlistTrackUris = await targetClient.playlists.listTrackUris(config.targetPlaylistId);
+    const playlistTrackUris = await client.playlists.listTrackUris(config.playlistId);
     console.log(`${playlistTrackUris.size}件のプレイリスト曲を取得`);
     console.log('差分を確認中...');
 
@@ -33,7 +27,7 @@ async function main() {
     console.log(`${newTrackUris.size}件の新規追加曲を検出`);
     if (newTrackUris.size > 0) {
       console.log('プレイリストに新規追加曲を追加中...');
-      await targetClient.playlists.addTracks(config.targetPlaylistId, newTrackUris);
+      await client.playlists.addTracks(config.playlistId, newTrackUris);
     } else {
       console.log('新規追加曲なし');
     }
@@ -43,7 +37,7 @@ async function main() {
     console.log(`${deletedTrackUris.size}件の削除曲を検出`);
     if (deletedTrackUris.size > 0) {
       console.log('プレイリストから削除曲を削除中...');
-      await targetClient.playlists.removeTracks(config.targetPlaylistId, deletedTrackUris);
+      await client.playlists.removeTracks(config.playlistId, deletedTrackUris);
     } else {
       console.log('削除曲なし');
     }
