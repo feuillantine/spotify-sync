@@ -45,7 +45,6 @@ jobs:
         with:
           branch_prefix: 'claude-'
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
-          github_token: ${{ secrets.GITHUB_TOKEN }}
           settings: |
             {
               "env": {
