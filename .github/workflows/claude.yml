@@ -41,7 +41,7 @@ jobs:
       # Claude Codeを実行
       - name: Run Claude Code
         id: claude
-        uses: anthropics/claude-code-action@7145c3e0510bcdbdd29f67cc4a8c1958f1acfa2f # v1.0.27
+        uses: feuillantine/claude-code-action@a581d083d654b2d49b5da871711d76d81c88cb87
         with:
           branch_prefix: 'claude-'
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
