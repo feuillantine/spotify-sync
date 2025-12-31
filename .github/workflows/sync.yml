@@ -31,4 +31,4 @@ jobs:
           CLIENT_ID: ${{ secrets.CLIENT_ID }}
           CLIENT_SECRET: ${{ secrets.CLIENT_SECRET }}
           REFRESH_TOKEN: ${{ secrets.REFRESH_TOKEN }}
-          TARGET_PLAYLIST_ID: ${{ secrets.TARGET_PLAYLIST_ID }}
+          PLAYLIST_ID: ${{ secrets.PLAYLIST_ID }}
